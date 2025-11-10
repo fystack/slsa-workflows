@@ -90,7 +90,7 @@ jobs:
 
 | Input | Required | Default | Description |
 |-------|----------|---------|-------------|
-| `image-name` |  | - | Full Docker image name (e.g., `fystack/apex-api`) |
+| `image-name` |  | - | Full Docker image name (e.g., `azzurriii/apex-api`) |
 | `context-path` |  | - | Build context path relative to repository root |
 | `dockerfile` |  | - | Path to Dockerfile relative to context |
 | `platforms` | L | `linux/amd64` | Target platforms (comma-separated) |
@@ -121,9 +121,9 @@ The workflow automatically generates the following tags:
 
 Example:
 ```
-fystack/apex-api:v1.0.0
-fystack/apex-api:a1b2c3d
-fystack/apex-api:latest
+azzurriii/apex-api:v1.0.0
+azzurriii/apex-api:a1b2c3d
+azzurriii/apex-api:latest
 ```
 
 ## Dockerfile Requirements

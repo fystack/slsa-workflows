@@ -1,7 +1,7 @@
 #!/bin/bash
 # SLSA L3 Image Verification Script
 # Usage: ./verify-image.sh <image:tag> <github-repo>
-# Example: ./verify-image.sh fystack/apex-api:v1.0.0 fystack/apex
+# Example: ./verify-image.sh azzurriii/apex-api:v1.0.0 fystack/apex
 
 set -e
 
@@ -27,8 +27,8 @@ usage() {
     echo "Usage: $0 <image:tag> <github-repo>"
     echo ""
     echo "Examples:"
-    echo "  $0 fystack/apex-api:v1.0.0 fystack/apex"
-    echo "  $0 ghcr.io/fystack/apex-api:v1.0.0 fystack/apex"
+    echo "  $0 azzurriii/apex-api:v1.0.0 fystack/apex"
+    echo "  $0 ghcr.io/azzurriii/apex-api:v1.0.0 fystack/apex"
     exit 1
 }
 
