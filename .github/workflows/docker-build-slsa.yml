@@ -63,7 +63,8 @@ jobs:
       id-token: write  # Required for OIDC token
     outputs:
       digest: ${{ steps.build.outputs.digest }}
-      image-uri: ${{ steps.meta.outputs.image-uri }}
+      image-uri: ${{ steps.uri.outputs.image-uri }}
+      full-image: ${{ steps.meta.outputs.full-image }}
 
     steps:
       - name: Checkout repository
@@ -150,8 +151,8 @@ jobs:
       contents: read
     uses: slsa-framework/slsa-github-generator/.github/workflows/generator_container_slsa3.yml@v2.0.0
     with:
-      image: ${{ needs.build.outputs.image-uri }}
+      image: ${{ needs.build.outputs.full-image }}
       digest: ${{ needs.build.outputs.digest }}
-      registry-username: ${{ secrets.registry-username }}
     secrets:
+      registry-username: ${{ secrets.registry-username }}
       registry-password: ${{ secrets.registry-password }}
