@@ -49,13 +49,16 @@ check_tools
 
 # Step 1: Verify image signature
 echo -e "${YELLOW}[1/4] Verifying image signature...${NC}"
+# Note: Reusable workflows sign with their own identity, not the caller's
 if cosign verify \
-    --certificate-identity-regexp="https://github.com/$REPO/.github/workflows/.*@.*" \
+    --certificate-identity-regexp="https://github.com/fystack/slsa-workflows/.github/workflows/docker-build-slsa.yml@.*" \
     --certificate-oidc-issuer="https://token.actions.githubusercontent.com" \
     "$IMAGE" > /dev/null 2>&1; then
     echo -e "${GREEN}✓ Signature verification passed${NC}"
+    echo "  Signed by: fystack/slsa-workflows reusable workflow"
 else
     echo -e "${RED}✗ Signature verification failed${NC}"
+    echo -e "${YELLOW}Note: Reusable workflows sign with their own identity${NC}"
     exit 1
 fi
 
@@ -63,7 +66,7 @@ fi
 echo -e "${YELLOW}[2/4] Verifying SLSA provenance...${NC}"
 if cosign verify-attestation \
     --type slsaprovenance \
-    --certificate-identity-regexp="https://github.com/$REPO/.github/workflows/.*@.*" \
+    --certificate-identity-regexp="https://github.com/fystack/slsa-workflows/.github/workflows/docker-build-slsa.yml@.*" \
     --certificate-oidc-issuer="https://token.actions.githubusercontent.com" \
     "$IMAGE" > /dev/null 2>&1; then
     echo -e "${GREEN}✓ SLSA provenance verification passed${NC}"
@@ -71,7 +74,7 @@ if cosign verify-attestation \
     # Extract provenance details
     PROVENANCE=$(cosign verify-attestation \
         --type slsaprovenance \
-        --certificate-identity-regexp="https://github.com/$REPO/.github/workflows/.*@.*" \
+        --certificate-identity-regexp="https://github.com/fystack/slsa-workflows/.github/workflows/docker-build-slsa.yml@.*" \
         --certificate-oidc-issuer="https://token.actions.githubusercontent.com" \
         "$IMAGE" 2>/dev/null | jq -r '.payload | @base64d | fromjson')
 
@@ -91,7 +94,7 @@ fi
 echo -e "${YELLOW}[3/4] Verifying SBOM attestation...${NC}"
 if cosign verify-attestation \
     --type spdx \
-    --certificate-identity-regexp="https://github.com/$REPO/.github/workflows/.*@.*" \
+    --certificate-identity-regexp="https://github.com/fystack/slsa-workflows/.github/workflows/docker-build-slsa.yml@.*" \
     --certificate-oidc-issuer="https://token.actions.githubusercontent.com" \
     "$IMAGE" > /dev/null 2>&1; then
     echo -e "${GREEN}✓ SBOM verification passed${NC}"
@@ -99,7 +102,7 @@ if cosign verify-attestation \
     # Extract SBOM details
     SBOM=$(cosign verify-attestation \
         --type spdx \
-        --certificate-identity-regexp="https://github.com/$REPO/.github/workflows/.*@.*" \
+        --certificate-identity-regexp="https://github.com/fystack/slsa-workflows/.github/workflows/docker-build-slsa.yml@.*" \
         --certificate-oidc-issuer="https://token.actions.githubusercontent.com" \
         "$IMAGE" 2>/dev/null | jq -r '.payload | @base64d | fromjson')
 
