@@ -69,7 +69,6 @@ jobs:
     outputs:
       digest: ${{ steps.build.outputs.digest }}
       image-uri: ${{ steps.uri.outputs.image-uri }}
-      full-image: ${{ steps.meta.outputs.full-image }}
 
     steps:
       - name: Checkout repository
@@ -156,7 +155,7 @@ jobs:
       contents: read
     uses: slsa-framework/slsa-github-generator/.github/workflows/generator_container_slsa3.yml@v2.0.0
     with:
-      image: ${{ needs.build.outputs.full-image }}
+      image: ${{ inputs.image-name }}
       digest: ${{ needs.build.outputs.digest }}
       private-repository: ${{ inputs.private-repository }}
     secrets:
