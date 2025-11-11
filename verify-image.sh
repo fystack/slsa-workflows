@@ -82,9 +82,16 @@ if cosign verify-attestation \
     SOURCE_REPO=$(echo "$PROVENANCE" | jq -r '.predicate.buildDefinition.externalParameters.source.repository')
     SOURCE_REF=$(echo "$PROVENANCE" | jq -r '.predicate.buildDefinition.externalParameters.source.ref')
 
+    # Extract the actual commit SHA that was built
+    ACTUAL_COMMIT=$(echo "$PROVENANCE" | jq -r '.predicate.materials[0].digest.sha1 // .predicate.buildDefinition.resolvedDependencies[0].digest.sha1 // "unknown"')
+
     echo "  Builder: $BUILDER"
     echo "  Source: $SOURCE_REPO"
     echo "  Ref: $SOURCE_REF"
+    echo "  Commit: $ACTUAL_COMMIT"
+    echo ""
+    echo -e "${YELLOW}  ⚠️  To detect code injection, verify this commit matches your git tag:${NC}"
+    echo "     git rev-parse $SOURCE_REF"
 else
     echo -e "${RED}✗ SLSA provenance verification failed${NC}"
     exit 1
