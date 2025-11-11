@@ -136,7 +136,7 @@ jobs:
             org.opencontainers.image.created=${{ steps.meta.outputs.build-date }}
           cache-from: type=registry,ref=${{ steps.meta.outputs.full-image }}:buildcache
           cache-to: type=registry,ref=${{ steps.meta.outputs.full-image }}:buildcache,mode=max
-          sbom: ${{ inputs.enable-sbom }}
+          sbom: false  # Disable buildkit SBOM, generate with Syft and attest with Cosign instead
           provenance: false  # Disable buildkit provenance, use SLSA generator instead
 
       - name: Output image URI
@@ -184,4 +184,21 @@ jobs:
       - name: Sign image with keyless Cosign
         run: |
           cosign sign --yes \
+            ${{ inputs.image-name }}@${{ needs.build.outputs.digest }}
+
+      - name: Generate and attest SBOM
+        if: ${{ inputs.enable-sbom }}
+        run: |
+          # Install Syft for SBOM generation
+          curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
+
+          # Generate SBOM in SPDX format
+          syft ${{ inputs.image-name }}@${{ needs.build.outputs.digest }} \
+            -o spdx-json \
+            --file sbom.spdx.json
+
+          # Attest the SBOM with Cosign
+          cosign attest --yes \
+            --predicate sbom.spdx.json \
+            --type spdx \
             ${{ inputs.image-name }}@${{ needs.build.outputs.digest }}

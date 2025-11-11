@@ -77,6 +77,34 @@ This workflow enforces a **three-layer security model**:
 
 Verification is essential to complete the security chain.
 
+### Automated Verification Scripts
+
+We provide modular verification scripts for easy validation:
+
+#### All-in-One Verification
+
+```bash
+./scripts/verify-image.sh fystack/apex-rescanner:v0.1.8 fystack/apex
+```
+
+#### Independent Verification Steps
+
+Each verification can be run independently:
+
+```bash
+# 1. Verify signature only
+./scripts/verify-signature.sh fystack/apex-rescanner:v0.1.8
+
+# 2. Verify provenance only
+./scripts/verify-provenance.sh fystack/apex-rescanner:v0.1.8
+
+# 3. Verify SBOM only
+./scripts/verify-sbom.sh fystack/apex-rescanner:v0.1.8
+
+# 4. Verify Rekor transparency log
+./scripts/verify-rekor.sh <log_index> fystack/apex-rescanner:v0.1.8
+```
+
 ### Manual Verification Steps
 
 #### 1\. Verify Image Signature
@@ -97,7 +125,7 @@ Proves the image was built from specific source code, not tampered with.
 ```bash
 cosign verify-attestation \
   --type slsaprovenance \
-  --certificate-identity-regexp='https://github.com/fystack/slsa-workflows/.github/workflows/docker-build-slsa.yml@.*' \
+  --certificate-identity-regexp='https://github.com/slsa-framework/slsa-github-generator/.github/workflows/generator_container_slsa3.yml@.*' \
   --certificate-oidc-issuer='https://token.actions.githubusercontent.com' \
   myorg/myapp:v1.0.0 \
   | jq '.payload | @base64d | fromjson'
@@ -111,10 +139,10 @@ This step compares the commit SHA recorded in the image's provenance with the ex
 # 1. Extract the commit SHA from the image's SLSA provenance
 ACTUAL_COMMIT=$(cosign verify-attestation \
   --type slsaprovenance \
-  --certificate-identity-regexp='https://github.com/fystack/slsa-workflows/.github/workflows/docker-build-slsa.yml@.*' \
+  --certificate-identity-regexp='https://github.com/slsa-framework/slsa-github-generator/.github/workflows/generator_container_slsa3.yml@.*' \
   --certificate-oidc-issuer='https://token.actions.githubusercontent.com' \
   myorg/myapp:v1.0.0 2>/dev/null \
-  | jq -r '.payload | @base64d | fromjson | .predicate.materials[0].digest.sha1')
+  | jq -r '.payload | @base64d | fromjson | .predicate.invocation.configSource.digest.sha1')
 
 # 2. Get the expected commit SHA for the tag from your source control
 EXPECTED_COMMIT=$(git rev-parse v1.0.0)
