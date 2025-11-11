@@ -54,12 +54,22 @@ verify_sbom() {
     print_success "SBOM attestation verification passed"
     echo ""
 
-    local sbom=$(decode_payload "$output_file")
+    local attestation=$(decode_payload "$output_file")
     
-    local sbom_version=$(echo "$sbom" | jq -r '.predicate.spdxVersion // "N/A"')
-    local sbom_name=$(echo "$sbom" | jq -r '.predicate.name // "N/A"')
-    local sbom_created=$(echo "$sbom" | jq -r '.predicate.creationInfo.created // "N/A"')
-    local sbom_creators=$(echo "$sbom" | jq -r '.predicate.creationInfo.creators[]? // "N/A"' | paste -sd ',' -)
+    # SBOM predicate is often double-encoded as a JSON string
+    local sbom=$(echo "$attestation" | jq -r '.predicate')
+    if echo "$sbom" | jq empty 2>/dev/null; then
+        # predicate is already parsed JSON
+        :
+    else
+        # predicate is a JSON string that needs parsing
+        sbom=$(echo "$attestation" | jq -r '.predicate | fromjson')
+    fi
+    
+    local sbom_version=$(echo "$sbom" | jq -r '.spdxVersion // "N/A"')
+    local sbom_name=$(echo "$sbom" | jq -r '.name // "N/A"')
+    local sbom_created=$(echo "$sbom" | jq -r '.creationInfo.created // "N/A"')
+    local sbom_creators=$(echo "$sbom" | jq -r '.creationInfo.creators[]? // "N/A"' | paste -sd ',' -)
 
     print_field "SPDX Version" "$sbom_version"
     print_field "SBOM Name" "$sbom_name"
@@ -67,23 +77,24 @@ verify_sbom() {
     print_field "Creators" "$sbom_creators"
     echo ""
 
-    local package_count=$(echo "$sbom" | jq -r '.predicate.packages | length // 0')
-    local file_count=$(echo "$sbom" | jq -r '.predicate.files | length // 0')
+    local package_count=$(echo "$sbom" | jq -r '.packages | length // 0')
+    local file_count=$(echo "$sbom" | jq -r '.files | length // 0')
 
     print_field "Total Packages" "$package_count"
     print_field "Total Files" "$file_count"
-    echo ""
-
-    print_field "Key Packages" ""
-    echo "$sbom" | jq -r '.predicate.packages[] | select(.name) | "    - \(.name) (\(.versionInfo // "unknown"))"' | head -10
-    if [ "$package_count" -gt 10 ]; then
-        echo "    ... and $((package_count - 10)) more packages"
+    
+    local package_types=$(echo "$sbom" | jq -r '[.packages[].externalRefs[]?.referenceType // empty] | unique | join(", ")' 2>/dev/null)
+    if [ -n "$package_types" ]; then
+        print_field "Package Ecosystems" "$package_types"
     fi
     echo ""
 
-    local package_types=$(echo "$sbom" | jq -r '[.predicate.packages[].externalRefs[]?.referenceType // empty] | unique | join(", ")' 2>/dev/null)
-    if [ -n "$package_types" ]; then
-        print_field "Package Ecosystems" "$package_types"
+    if [ "$package_count" != "0" ] && [ -n "$package_count" ] && [ "$package_count" -gt 0 ] 2>/dev/null; then
+        echo -e "  ${BLUE}Sample Packages (top 5):${NC}"
+        echo "$sbom" | jq -r '.packages[] | select(.name) | "    • \(.name) (\(.versionInfo // "unknown"))"' 2>/dev/null | head -5
+        if [ "$package_count" -gt 5 ]; then
+            echo -e "    ${BLUE}... and $((package_count - 5)) more${NC}"
+        fi
     fi
 
     return 0
