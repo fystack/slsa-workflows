@@ -39,7 +39,7 @@ verify_sbom() {
 
     print_header "[3/4] Verifying SBOM Attestation"
 
-    if ! cosign verify-attestation \
+    if ! COSIGN_REGISTRY_REFERRERS_MODE=oci-1-1 cosign verify-attestation \
         --type spdx \
         --certificate-identity-regexp="$workflow" \
         --certificate-oidc-issuer="https://token.actions.githubusercontent.com" \

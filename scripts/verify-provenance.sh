@@ -54,7 +54,7 @@ verify_provenance() {
 
     print_header "[2/4] Verifying SLSA Provenance"
 
-    if ! cosign verify-attestation \
+    if ! COSIGN_REGISTRY_REFERRERS_MODE=oci-1-1 cosign verify-attestation \
         --type slsaprovenance \
         --certificate-identity-regexp="$workflow" \
         --certificate-oidc-issuer="https://token.actions.githubusercontent.com" \
