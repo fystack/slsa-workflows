@@ -39,7 +39,7 @@ verify_signature() {
 
     print_header "[1/4] Verifying Image Signature" >&2
 
-    if ! COSIGN_REGISTRY_REFERRERS_MODE=oci-1-1 cosign verify \
+    if ! cosign verify \
         --certificate-identity-regexp="$workflow" \
         --certificate-oidc-issuer="https://token.actions.githubusercontent.com" \
         "$image" > "$output_file" 2>/dev/null; then

@@ -123,6 +123,7 @@ jobs:
           tags: |
             ${{ steps.meta.outputs.full-image }}:${{ steps.meta.outputs.version }}
             ${{ steps.meta.outputs.full-image }}:${{ steps.meta.outputs.short-sha }}
+            ${{ steps.meta.outputs.full-image }}:latest
           build-args: |
             VERSION=${{ steps.meta.outputs.version }}
             VCS_REF=${{ steps.meta.outputs.commit-sha }}
@@ -181,16 +182,12 @@ jobs:
           password: ${{ secrets.registry-password }}
 
       - name: Sign image with keyless Cosign
-        env:
-          COSIGN_REGISTRY_REFERRERS_MODE: oci-1-1
         run: |
           cosign sign --yes \
             ${{ inputs.image-name }}@${{ needs.build.outputs.digest }}
 
       - name: Generate and attest SBOM
         if: ${{ inputs.enable-sbom }}
-        env:
-          COSIGN_REGISTRY_REFERRERS_MODE: oci-1-1
         run: |
           # Install Syft for SBOM generation
           curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
