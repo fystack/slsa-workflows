@@ -136,7 +136,7 @@ jobs:
             org.opencontainers.image.created=${{ steps.meta.outputs.build-date }}
           cache-from: type=registry,ref=${{ steps.meta.outputs.full-image }}:buildcache
           cache-to: type=registry,ref=${{ steps.meta.outputs.full-image }}:buildcache,mode=max
-          sbom: false  # Disable buildkit SBOM, generate with Syft and attest with Cosign instead
+          sbom: true  # BuildKit native SBOM for Docker Scout; Cosign SBOM attestation generated separately in sign job
           provenance: false  # Disable buildkit provenance, use SLSA generator instead
 
       - name: Output image URI
