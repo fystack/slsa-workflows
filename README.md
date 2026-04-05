@@ -1,5 +1,19 @@
 # Fystack's Image SLSA Level 3 Workflows
 
+## Why This Exists
+
+Software supply chain attacks are no longer theoretical, they are among the fastest-growing threats in the industry. High-profile incidents like the [SolarWinds compromise](https://en.wikipedia.org/wiki/2020_United_States_federal_government_data_breach), the [codecov bash uploader breach](https://about.codecov.io/security-update/), and the [xz-utils backdoor](https://en.wikipedia.org/wiki/XZ_Utils_backdoor) have shown that attackers increasingly target the build and delivery pipeline rather than the application itself. A signed container image alone is not enough, it only proves *who* built it, not *what source code* was actually compiled.
+
+[SLSA](https://slsa.dev) (Supply-chain Levels for Software Artifacts) is a security framework created by Google and the OpenSSF that addresses this gap. It defines a set of incrementally adoptable levels that harden your build pipeline against tampering:
+
+![SLSA Build Levels — Trust Staircase](images/slsa_levels.png)
+
+This project provides **reusable GitHub Actions workflows** that bring your container images to **SLSA Level 3** — the highest build level — with minimal configuration. Every image you ship gets unforgeable provenance, keyless signing, and transparency log entries, so you and your users can cryptographically verify exactly *what* was built, *from which commit*, and *by which pipeline*.
+
+![SLSA L3 Pipeline Architecture](images/slsa_level3.png)
+
+For a deep dive into how and why we built this, read our blog post: [Secure Crypto Infrastructure: SLSA L3 Provenance for Docker Images](https://fystack.io/blog/secure-crypto-infrastructure-slsa-l3-provenance-for-docker-images-how-we-made-our-builds-verifiable).
+
 ## Key Features
 
   * **SLSA Level 3 Compliance**: Generates non-forgeable provenance using the official `slsa-framework/slsa-github-generator`.
