@@ -20,6 +20,16 @@ on:
         required: false
         type: string
         default: 'linux/amd64'
+      tag-prefix:
+        description: 'Prefix applied to every pushed tag (e.g. "slsa-" -> myorg/myapp:slsa-1.0.0), so a signed/provenance-attested build can share a repo with unsigned builds without colliding on tags'
+        required: false
+        type: string
+        default: ''
+      runner-labels:
+        description: 'JSON array of runs-on labels for the build job (e.g. ''["self-hosted", "Linux", "X64"]''). Defaults to a GitHub-hosted runner; callers opt into self-hosted per-call, other callers of this workflow are unaffected.'
+        required: false
+        type: string
+        default: '["ubuntu-latest"]'
       build-args:
         description: 'Build arguments (newline-separated KEY=VALUE pairs)'
         required: false
@@ -61,7 +71,7 @@ permissions:
 jobs:
   build:
     name: Build and Push Docker Image
-    runs-on: ubuntu-latest
+    runs-on: ${{ fromJson(inputs.runner-labels) }}
     permissions:
       contents: read
       packages: write
@@ -121,9 +131,9 @@ jobs:
           platforms: ${{ inputs.platforms }}
           push: true
           tags: |
-            ${{ steps.meta.outputs.full-image }}:${{ steps.meta.outputs.version }}
-            ${{ steps.meta.outputs.full-image }}:${{ steps.meta.outputs.short-sha }}
-            ${{ steps.meta.outputs.full-image }}:latest
+            ${{ steps.meta.outputs.full-image }}:${{ inputs.tag-prefix }}${{ steps.meta.outputs.version }}
+            ${{ steps.meta.outputs.full-image }}:${{ inputs.tag-prefix }}${{ steps.meta.outputs.short-sha }}
+            ${{ steps.meta.outputs.full-image }}:${{ inputs.tag-prefix }}latest
           build-args: |
             VERSION=${{ steps.meta.outputs.version }}
             VCS_REF=${{ steps.meta.outputs.commit-sha }}
@@ -137,7 +147,7 @@ jobs:
           cache-from: type=registry,ref=${{ steps.meta.outputs.full-image }}:buildcache
           cache-to: type=registry,ref=${{ steps.meta.outputs.full-image }}:buildcache,mode=max
           sbom: true  # BuildKit native SBOM for Docker Scout; Cosign SBOM attestation generated separately in sign job
-          provenance: false  # Disable buildkit provenance, use SLSA generator instead
+          provenance: mode=max  # BuildKit-native provenance (what Docker Hub/Scout read) in addition to the signed SLSA generator attestation below
 
       - name: Output image URI
         id: uri
